@@ -1,4 +1,6 @@
 <?php
+
+    
     require get_theme_file_path('/inc/search-route.php');
     require get_theme_file_path('/inc/like-route.php');
 
@@ -47,12 +49,66 @@
         </div>
     <?php }
 
-    
-    $dotenv = Dotenv\Dotenv::createImmutable(__DIR__);
-    $dotenv->load();    
-    $key = $_ENV['SECRET_KEY'];    
+    $env_file_path = realpath(__DIR__."/.env");
+    // $dotenv = Dotenv\Dotenv::createImmutable(__DIR__);
+    // $dotenv->load();    
+     
+
+
+    //first step
+
+    //Check .envenvironment file exists
+    if(!is_file($env_file_path)){
+        throw new ErrorException("Environment File is Missing.");
+    }
+    //Check .envenvironment file is readable
+    if(!is_readable($env_file_path)){
+        throw new ErrorException("Permission Denied for reading the ".($env_file_path).".");
+    }
+    //Check .envenvironment file is writable
+    if(!is_writable($env_file_path)){
+        throw new ErrorException("Permission Denied for writing on the ".($env_file_path).".");
+    }
+
+    //next step
+
+    $var_arrs = array();
+    // Open the .en file using the reading mode
+    $fopen = fopen($env_file_path, 'r');
+    if($fopen){
+        //Loop the lines of the file
+        while (($line = fgets($fopen)) !== false){
+            // Check if line is a comment
+            $line_is_comment = (substr(trim($line),0 , 1) == '#') ? true: false;
+            // If line is a comment or empty, then skip
+            if($line_is_comment || empty(trim($line)))
+                continue;
+ 
+            // Split the line variable and succeeding comment on line if exists
+            $line_no_comment = explode("#", $line, 2)[0];
+            // Split the variable name and value
+            $env_ex = preg_split('/(\s?)\=(\s?)/', $line_no_comment);
+            $env_name = trim($env_ex[0]);
+            $env_value = isset($env_ex[1]) ? trim($env_ex[1]) : "";
+            $var_arrs[$env_name] = $env_value;
+        }
+        // Close the file
+        fclose($fopen);
+    }
+
+    foreach($var_arrs as $name => $value){
+        $_ENV[$name] = $value;
+    }
+
+    // $key = $_ENV['FULL_ADDRESS'];
+    // $test = "//maps.googleapis.com/maps/api/js?key=" . $_ENV['SECRET_KEY'];
+    // echo '<script>console.log('.$test.')</script>';
+
     function university_files() {
-        wp_enqueue_script('googleMap', "//maps.googleapis.com/maps/api/js?key="+$key, NULL, '1.0', true);
+        $test = "//maps.googleapis.com/maps/api/js?key=" . $_ENV['SECRET_KEY'];
+        echo $_ENV['SECRET_KEY'];
+        echo '<script>console.log(' . $test . ')</script>';
+        wp_enqueue_script('googleMap', $test, NULL, '1.0', true);
         wp_enqueue_script('university-js', get_theme_file_uri('/build/index.js'), array('jquery'), '1.0', true);
         wp_enqueue_style('university_main_styles', get_theme_file_uri('/build/style-index.css'));
         wp_enqueue_style('university_extra_styles', get_theme_file_uri('/build/index.css'));
@@ -108,7 +164,7 @@
     add_action('pre_get_posts', 'university_adjust_queries');
 
     function universityMapKey($api) {
-        $api['key'] = $key;
+        $api['key'] = $_ENV['SECRET_KEY'];
         return $api;
     }
 
