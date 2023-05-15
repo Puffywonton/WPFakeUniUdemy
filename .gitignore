@@ -49,3 +49,6 @@ wp-config.php
 
 # End of https://www.toptal.com/developers/gitignore/api/wordpress
 node_modules
+
+.env
+.env.test

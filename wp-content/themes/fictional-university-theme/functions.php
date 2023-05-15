@@ -48,10 +48,11 @@
     <?php }
 
     
-
-
+    $dotenv = Dotenv\Dotenv::createImmutable(__DIR__);
+    $dotenv->load();    
+    $key = $_ENV['SECRET_KEY'];    
     function university_files() {
-        wp_enqueue_script('googleMap', '//maps.googleapis.com/maps/api/js?key=AIzaSyCG3O0v6bZGg5rAQSpijj4KRKk_wB3-NK0', NULL, '1.0', true);
+        wp_enqueue_script('googleMap', "//maps.googleapis.com/maps/api/js?key="+$key, NULL, '1.0', true);
         wp_enqueue_script('university-js', get_theme_file_uri('/build/index.js'), array('jquery'), '1.0', true);
         wp_enqueue_style('university_main_styles', get_theme_file_uri('/build/style-index.css'));
         wp_enqueue_style('university_extra_styles', get_theme_file_uri('/build/index.css'));
@@ -107,7 +108,7 @@
     add_action('pre_get_posts', 'university_adjust_queries');
 
     function universityMapKey($api) {
-        $api['key'] = 'AIzaSyCG3O0v6bZGg5rAQSpijj4KRKk_wB3-NK0';
+        $api['key'] = $key;
         return $api;
     }
 
